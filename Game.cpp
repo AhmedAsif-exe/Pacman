@@ -1,9 +1,12 @@
 #include "Dependencies.h"
-#define COIN = 68;
-#define POINTS = 236;
-#define ENEMIES = 85;
-#define WALL = 0;
-#define SPAWN = 105;
+enum spawns
+{
+    COIN = 113,
+    POINTS = 140,
+    ENEMIES = 85,
+    WALL = 0,
+    Player = 165
+};
 int **map;
 int width;
 int height;
@@ -26,27 +29,53 @@ void generate_map()
             sf::Color color = image.getPixel(x, y);
 
             int grayscale = (color.r + color.g + color.b) / 3;
-
+            std::cout << grayscale << " ";
             ::map[x][y] = grayscale;
         }
+        std::cout << std::endl;
     }
 }
 void render_map(sf::RenderWindow &window)
 {
     sf::RectangleShape rectangle(sf::Vector2f(20.0f, 20.0f));
+    sf::CircleShape circle;
 
     for (int x = 0; x < width; ++x)
         for (int y = 0; y < height; ++y)
-            if (!map[x][y])
+            if (map[x][y] == WALL)
             {
-                rectangle.setPosition(x * 20, y * 20 + 50);
-                rectangle.setFillColor(sf::Color(255, 255, 255, 200));
+                rectangle.setPosition(x * 20 + 50, y * 20 + 50);
+                rectangle.setFillColor(sf::Color(255, 255, 255, 240));
                 window.draw(rectangle);
+            }
+            else if (map[x][y] == POINTS)
+            {
+                circle.setRadius(2.5f);
+                circle.setPosition(x * 20 + 57.5f, y * 20 + 57.5f);
+                circle.setFillColor(sf::Color(255, 255, 255, 200));
+                window.draw(circle);
+            }
+            else if (map[x][y] == COIN)
+            {
+                circle.setRadius(5.0f);
+                circle.setPosition(x * 20 + 55.0f, y * 20 + 55.0f);
+                circle.setFillColor(sf::Color::Yellow);
+                window.draw(circle);
+            }
+            else if (map[x][y] == Player)
+            {
+                sf::Texture pacman;
+                pacman.loadFromFile("Resources/player.png");
+                sf::Sprite character;
+                character.setTexture(pacman);
+                character.setTextureRect(sf::IntRect(0, 0, 16, 16));
+                character.setPosition(x * 20 + 52.0f, y * 20 + 52.0f);
+                window.draw(character);
             }
 }
 void *game(void *argument)
 {
-    sf::RenderWindow window(sf::VideoMode(800, 500), "Pac Man");
+    sf::RenderWindow window(sf::VideoMode(900, 500), "Pac Man");
     sf::Texture wallpaper;
     wallpaper.loadFromFile("Resources/Wallpaper.jpg");
     sf::Sprite img(wallpaper);
