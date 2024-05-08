@@ -1,0 +1,19 @@
+#include "Dependencies.h"
+void *game(void *argument)
+{
+    sf::RenderWindow window(sf::VideoMode(800, 600), "Pac Man");
+
+    while (window.isOpen())
+    {
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
+
+        window.clear();
+        window.display();
+    }
+    pthread_exit(0);
+}

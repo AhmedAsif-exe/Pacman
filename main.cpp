@@ -1,21 +1,11 @@
-#include <SFML/Graphics.hpp>
-
+#include "Dependencies.h"
+#include "Game.h"
+using namespace sf;
+using namespace std;
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Pac Man");
-
-    while (window.isOpen())
-    {
-        sf::Event event;
-        while (window.pollEvent(event))
-        {
-            if (event.type == sf::Event::Closed)
-                window.close();
-        }
-
-        window.clear();
-        window.display();
-    }
-
+    pthread_t tid;
+    pthread_create(&tid, NULL, game, NULL);
+    pthread_join(tid, NULL);
     return 0;
 }
