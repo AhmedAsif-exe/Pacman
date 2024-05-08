@@ -1,5 +1,5 @@
 #include "Dependencies.h"
-#include "Game.h"
+#include "Game.cpp"
 using namespace sf;
 using namespace std;
 int main()
