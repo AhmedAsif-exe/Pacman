@@ -1,12 +1,6 @@
 #include "Dependencies.h"
-enum spawns
-{
-    COIN = 113,
-    POINTS = 140,
-    ENEMIES = 85,
-    WALL = 0,
-    Player = 165
-};
+#include "Player.h"
+
 int **map;
 int width;
 int height;
@@ -25,11 +19,9 @@ void generate_map()
     {
         for (unsigned int y = 0; y < height; ++y)
         {
-
             sf::Color color = image.getPixel(x, y);
 
             int grayscale = (color.r + color.g + color.b) / 3;
-            std::cout << grayscale << " ";
             ::map[x][y] = grayscale;
         }
         std::cout << std::endl;
@@ -42,27 +34,27 @@ void render_map(sf::RenderWindow &window)
 
     for (int x = 0; x < width; ++x)
         for (int y = 0; y < height; ++y)
-            if (map[x][y] == WALL)
+            if (::map[x][y] == WALL)
             {
                 rectangle.setPosition(x * 20 + 50, y * 20 + 50);
                 rectangle.setFillColor(sf::Color(255, 255, 255, 240));
                 window.draw(rectangle);
             }
-            else if (map[x][y] == POINTS)
+            else if (::map[x][y] == POINTS)
             {
                 circle.setRadius(2.5f);
                 circle.setPosition(x * 20 + 57.5f, y * 20 + 57.5f);
                 circle.setFillColor(sf::Color(255, 255, 255, 200));
                 window.draw(circle);
             }
-            else if (map[x][y] == COIN)
+            else if (::map[x][y] == COIN)
             {
                 circle.setRadius(5.0f);
                 circle.setPosition(x * 20 + 55.0f, y * 20 + 55.0f);
                 circle.setFillColor(sf::Color::Yellow);
                 window.draw(circle);
             }
-            else if (map[x][y] == Player)
+            else if (::map[x][y] == PLAYER)
             {
                 sf::Texture pacman;
                 pacman.loadFromFile("Resources/player.png");
@@ -80,11 +72,16 @@ void *game(void *argument)
     wallpaper.loadFromFile("Resources/Wallpaper.jpg");
     sf::Sprite img(wallpaper);
     img.setScale(0.75f, 0.83f);
-
     generate_map();
-
+    sf::Clock clock;
+    sf::Texture playerTexture;
+    playerTexture.loadFromFile("Resources/player.png");
+    PacPlayer player;
+    float time;
     while (window.isOpen())
     {
+        time += clock.getElapsedTime().asSeconds();
+        clock.restart();
         sf::Event event;
         while (window.pollEvent(event))
             if (event.type == sf::Event::Closed)
@@ -92,11 +89,16 @@ void *game(void *argument)
 
         window.clear();
         window.draw(img);
+
+        player.handleInput(::map, time); // Handle player input
         render_map(window);
+
         window.display();
     }
+
     for (unsigned int i = 0; i < width; ++i)
         delete[] ::map[i];
     delete[] ::map;
+
     pthread_exit(0);
 }

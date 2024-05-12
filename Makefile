@@ -4,8 +4,10 @@ sfml-app: main.o Game.o Dependencies.o
 main.o: main.cpp Game.o Dependencies.o
 	g++ -c main.cpp
 
-Game.o: Game.cpp Dependencies.o 
+Game.o: Game.cpp Dependencies.o Player.o
 	g++ -c Game.cpp
 
+Player.o: Dependencies.o
+	g++ -c Player.h
 Dependencies.o: Dependencies.h
 	g++ -c Dependencies.h
