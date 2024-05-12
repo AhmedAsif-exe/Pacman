@@ -1,9 +1,6 @@
 #include "Dependencies.h"
 #include "Player.h"
-
-int **map;
-int width;
-int height;
+void *Player(void *);
 void generate_map()
 {
     sf::Image image;
@@ -77,10 +74,11 @@ void *game(void *argument)
     sf::Texture playerTexture;
     playerTexture.loadFromFile("Resources/player.png");
     PacPlayer player;
-    float time;
+
+    pthread_t playerThread;
     while (window.isOpen())
     {
-        time += clock.getElapsedTime().asSeconds();
+        player.frame_time += clock.getElapsedTime().asSeconds();
         clock.restart();
         sf::Event event;
         while (window.pollEvent(event))
@@ -90,7 +88,8 @@ void *game(void *argument)
         window.clear();
         window.draw(img);
 
-        player.handleInput(::map, time); // Handle player input
+        pthread_create(&playerThread, NULL, Player, (void *)&player);
+        pthread_join(playerThread, NULL); // Handle player input
         render_map(window);
 
         window.display();
@@ -100,5 +99,12 @@ void *game(void *argument)
         delete[] ::map[i];
     delete[] ::map;
 
+    pthread_exit(0);
+}
+
+void *Player(void *argument)
+{
+    PacPlayer *player = (PacPlayer *)argument;
+    player->handleInput();
     pthread_exit(0);
 }

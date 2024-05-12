@@ -11,44 +11,43 @@ enum spawns
 class PacPlayer
 {
 private:
-    sf::Sprite sprite;
-    sf::IntRect PlayerRect;
     sf::Vector2i coordinates;
-    bool canMove(int **map, int x, int y)
+    bool canMove(int x, int y)
     {
         return (map[x][y] != WALL && x >= 0 && x < 40 && y >= 0 && y < 20);
     }
     float timer = 0.1f;
 
 public:
+    float frame_time = 0;
     PacPlayer() : coordinates(sf::Vector2i(19, 14)) {}
 
-    void handleInput(int **map, float &time)
+    void handleInput()
     {
-        if (time < timer)
+        if (frame_time < timer)
             return;
 
-        time -= timer;
+        frame_time -= timer;
 
-        if (canMove(map, coordinates.x - 1, coordinates.y) && sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+        if (canMove(coordinates.x - 1, coordinates.y) && sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
         {
             map[coordinates.x - 1][coordinates.y] = PLAYER;
             map[coordinates.x][coordinates.y] = BLANK;
             --coordinates.x;
         }
-        else if (canMove(map, coordinates.x + 1, coordinates.y) && sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+        else if (canMove(coordinates.x + 1, coordinates.y) && sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
         {
             map[coordinates.x + 1][coordinates.y] = PLAYER;
             map[coordinates.x][coordinates.y] = BLANK;
             ++coordinates.x;
         }
-        else if (canMove(map, coordinates.x, coordinates.y - 1) && sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+        else if (canMove(coordinates.x, coordinates.y - 1) && sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
         {
             map[coordinates.x][coordinates.y - 1] = PLAYER;
             map[coordinates.x][coordinates.y] = BLANK;
             --coordinates.y;
         }
-        else if (canMove(map, coordinates.x, coordinates.y + 1) && sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+        else if (canMove(coordinates.x, coordinates.y + 1) && sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
         {
             map[coordinates.x][coordinates.y + 1] = PLAYER;
             map[coordinates.x][coordinates.y] = BLANK;
