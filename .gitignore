@@ -1,3 +1,5 @@
 /.vscode
 *.o
 Makefile
+*.h.gch
+sfml-app
