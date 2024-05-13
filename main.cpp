@@ -1,7 +1,5 @@
 #include "Dependencies.h"
 #include "Game.cpp"
-using namespace sf;
-using namespace std;
 int main()
 {
     pthread_t tid;

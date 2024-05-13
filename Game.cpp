@@ -20,6 +20,10 @@ void generate_map()
 
             int grayscale = (color.r + color.g + color.b) / 3;
             ::map[x][y] = grayscale;
+            if (grayscale != 0)
+                std::cout << grayscale << " ";
+            else
+                std::cout << grayscale << "   ";
         }
         std::cout << std::endl;
     }
@@ -60,6 +64,16 @@ void render_map(sf::RenderWindow &window)
                 character.setTextureRect(sf::IntRect(0, 0, 16, 16));
                 character.setPosition(x * 20 + 52.0f, y * 20 + 52.0f);
                 window.draw(character);
+            }
+            else if (::map[x][y] == ENEMIES)
+            {
+                sf::Texture enemyText;
+                enemyText.loadFromFile("Resources/clyde.png");
+                sf::Sprite enemy;
+                enemy.setTexture(enemyText);
+                enemy.setTextureRect(sf::IntRect(112, 0, 16, 16));
+                enemy.setPosition(x * 20 + 52.0f, y * 20 + 52.0f);
+                window.draw(enemy);
             }
 }
 void *game(void *argument)
@@ -105,6 +119,6 @@ void *game(void *argument)
 void *Player(void *argument)
 {
     PacPlayer *player = (PacPlayer *)argument;
-    player->handleInput();
+    player->handleMovement();
     pthread_exit(0);
 }
