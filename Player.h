@@ -4,14 +4,14 @@ class PacPlayer
 {
 private:
     sf::Vector2i coordinates;
-    bool canMove(int x, int y)
+    bool canMove(int x, int y, int **map)
     {
-        return (::map[x][y] != WALL && x >= 0 && x < 40 && y >= 0 && y < 20);
+        return (x >= 0 && x < 40 && y >= 0 && y < 20 && map[x][y] != WALL);
     }
     float timer = 0.1f;
     int points = 0;
 
-    void setScore(int x, int y)
+    void setScore(int x, int y, int **map)
     {
         if (map[x][y] == POINTS)
             points += 5;
@@ -20,42 +20,22 @@ private:
     }
 
 public:
-    float frame_time = 0;
     PacPlayer() : coordinates(sf::Vector2i(19, 14)) {}
-    void handleMovement()
+    void handleMovement(GameState &game_state, float &frame_time)
     {
-        if (frame_time < timer)
+        std::cout << "Frame time : " << frame_time << std::endl;
+        if (frame_time < 0.2f)
             return;
-
-        frame_time -= timer;
-
-        if (canMove(coordinates.x - 1, coordinates.y) && sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+        frame_time = 0;
+        sf::Vector2i new_position = {coordinates.x + game_state.step.x,
+                                     coordinates.y + game_state.step.y};
+        if (canMove(new_position.x, new_position.y, game_state.map))
         {
-            setScore(coordinates.x - 1, coordinates.y);
-            ::map[coordinates.x - 1][coordinates.y] = PLAYER;
-            ::map[coordinates.x][coordinates.y] = BLANK;
-            --coordinates.x;
-        }
-        else if (canMove(coordinates.x + 1, coordinates.y) && sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-        {
-            setScore(coordinates.x + 1, coordinates.y);
-            ::map[coordinates.x + 1][coordinates.y] = PLAYER;
-            ::map[coordinates.x][coordinates.y] = BLANK;
-            ++coordinates.x;
-        }
-        else if (canMove(coordinates.x, coordinates.y - 1) && sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-        {
-            setScore(coordinates.x, coordinates.y - 1);
-            ::map[coordinates.x][coordinates.y - 1] = PLAYER;
-            ::map[coordinates.x][coordinates.y] = BLANK;
-            --coordinates.y;
-        }
-        else if (canMove(coordinates.x, coordinates.y + 1) && sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-        {
-            setScore(coordinates.x, coordinates.y + 1);
-            ::map[coordinates.x][coordinates.y + 1] = PLAYER;
-            ::map[coordinates.x][coordinates.y] = BLANK;
-            ++coordinates.y;
+            setScore(new_position.x, new_position.y, game_state.map);
+            game_state.map[coordinates.x][coordinates.y] = BLANK;
+            game_state.map[new_position.x][new_position.y] = PLAYER;
+            coordinates = new_position;
+            game_state.step = {0, 0};
         }
     }
 };

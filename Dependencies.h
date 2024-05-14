@@ -2,9 +2,14 @@
 #include <pthread.h>
 #include <SFML/Graphics.hpp>
 #include <iostream>
-int **map;
-int width;
-int height;
+
+struct GameState
+{
+    sf::Vector2i step;
+    int **map;
+    int width;
+    int height;
+};
 enum spawns
 {
     COIN = 113,

@@ -1,25 +1,25 @@
 #include "Dependencies.h"
 #include "Player.h"
 void *Player(void *);
-void generate_map()
+void generate_map(GameState &game_state)
 {
     sf::Image image;
     image.loadFromFile("Resources/map.png");
-    width = image.getSize().x;
-    height = image.getSize().y;
-    std::cout << width << " " << height << std::endl;
-    ::map = new int *[width];
-    for (unsigned int i = 0; i < width; ++i)
-        ::map[i] = new int[height];
+    game_state.width = image.getSize().x;
+    game_state.height = image.getSize().y;
+    std::cout << game_state.width << " " << game_state.height << std::endl;
+    game_state.map = new int *[game_state.width];
+    for (unsigned int i = 0; i < game_state.width; ++i)
+        game_state.map[i] = new int[game_state.height];
 
-    for (unsigned int x = 0; x < width; ++x)
+    for (unsigned int x = 0; x < game_state.width; ++x)
     {
-        for (unsigned int y = 0; y < height; ++y)
+        for (unsigned int y = 0; y < game_state.height; ++y)
         {
             sf::Color color = image.getPixel(x, y);
 
             int grayscale = (color.r + color.g + color.b) / 3;
-            ::map[x][y] = grayscale;
+            game_state.map[x][y] = grayscale;
             if (grayscale != 0)
                 std::cout << grayscale << " ";
             else
@@ -28,34 +28,34 @@ void generate_map()
         std::cout << std::endl;
     }
 }
-void render_map(sf::RenderWindow &window)
+void render_map(sf::RenderWindow &window, GameState &game_state)
 {
     sf::RectangleShape rectangle(sf::Vector2f(20.0f, 20.0f));
     sf::CircleShape circle;
 
-    for (int x = 0; x < width; ++x)
-        for (int y = 0; y < height; ++y)
-            if (::map[x][y] == WALL)
+    for (int x = 0; x < game_state.width; ++x)
+        for (int y = 0; y < game_state.height; ++y)
+            if (game_state.map[x][y] == WALL)
             {
                 rectangle.setPosition(x * 20 + 50, y * 20 + 50);
                 rectangle.setFillColor(sf::Color(255, 255, 255, 240));
                 window.draw(rectangle);
             }
-            else if (::map[x][y] == POINTS)
+            else if (game_state.map[x][y] == POINTS)
             {
                 circle.setRadius(2.5f);
                 circle.setPosition(x * 20 + 57.5f, y * 20 + 57.5f);
                 circle.setFillColor(sf::Color(255, 255, 255, 200));
                 window.draw(circle);
             }
-            else if (::map[x][y] == COIN)
+            else if (game_state.map[x][y] == COIN)
             {
                 circle.setRadius(5.0f);
                 circle.setPosition(x * 20 + 55.0f, y * 20 + 55.0f);
                 circle.setFillColor(sf::Color::Yellow);
                 window.draw(circle);
             }
-            else if (::map[x][y] == PLAYER)
+            else if (game_state.map[x][y] == PLAYER)
             {
                 sf::Texture pacman;
                 pacman.loadFromFile("Resources/player.png");
@@ -65,7 +65,7 @@ void render_map(sf::RenderWindow &window)
                 character.setPosition(x * 20 + 52.0f, y * 20 + 52.0f);
                 window.draw(character);
             }
-            else if (::map[x][y] == ENEMIES)
+            else if (game_state.map[x][y] == ENEMIES)
             {
                 sf::Texture enemyText;
                 enemyText.loadFromFile("Resources/clyde.png");
@@ -78,21 +78,23 @@ void render_map(sf::RenderWindow &window)
 }
 void *game(void *argument)
 {
+    GameState game_state;
+
     sf::RenderWindow window(sf::VideoMode(900, 500), "Pac Man");
     sf::Texture wallpaper;
     wallpaper.loadFromFile("Resources/Wallpaper.jpg");
     sf::Sprite img(wallpaper);
     img.setScale(0.75f, 0.83f);
-    generate_map();
+    generate_map(game_state);
     sf::Clock clock;
     sf::Texture playerTexture;
     playerTexture.loadFromFile("Resources/player.png");
     PacPlayer player;
-
+    float frame_time = 0;
     pthread_t playerThread;
     while (window.isOpen())
     {
-        player.frame_time += clock.getElapsedTime().asSeconds();
+        frame_time += clock.getElapsedTime().asSeconds();
         clock.restart();
         sf::Event event;
         while (window.pollEvent(event))
@@ -102,23 +104,36 @@ void *game(void *argument)
         window.clear();
         window.draw(img);
 
-        pthread_create(&playerThread, NULL, Player, (void *)&player);
+        pthread_create(&playerThread, NULL, Player, &game_state);
         pthread_join(playerThread, NULL); // Handle player input
-        render_map(window);
+        player.handleMovement(game_state, frame_time);
+        render_map(window, game_state);
 
         window.display();
     }
 
-    for (unsigned int i = 0; i < width; ++i)
-        delete[] ::map[i];
-    delete[] ::map;
+    for (unsigned int i = 0; i < game_state.width; ++i)
+        delete[] game_state.map[i];
+    delete[] game_state.map;
 
     pthread_exit(0);
 }
+void getKeyboardState(sf::Vector2i &step)
+{
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+        step = {-1, 0};
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+        step = {1, 0};
 
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+        step = {0, -1};
+
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+        step = {0, 1};
+}
 void *Player(void *argument)
 {
-    PacPlayer *player = (PacPlayer *)argument;
-    player->handleMovement();
+    GameState *game_state = (GameState *)argument;
+    getKeyboardState(game_state->step);
     pthread_exit(0);
 }
