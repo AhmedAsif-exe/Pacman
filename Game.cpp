@@ -32,7 +32,7 @@ void generate_map(GameState &game_state)
         std::cout << std::endl;
     }
 }
-void render_map(sf::RenderWindow &window, GameState &game_state, int score)
+void render_map(sf::RenderWindow &window, GameState &game_state, int score, bool hyperState)
 {
     sf::RectangleShape rectangle(sf::Vector2f(20.0f, 20.0f));
     sf::CircleShape circle;
@@ -76,10 +76,20 @@ void render_map(sf::RenderWindow &window, GameState &game_state, int score)
             else if (game_state.map[x][y] == ENEMIES)
             {
                 sf::Texture enemyText;
-                enemyText.loadFromFile("Resources/clyde.png");
                 sf::Sprite enemy;
-                enemy.setTexture(enemyText);
-                enemy.setTextureRect(sf::IntRect(112, 0, 16, 16));
+                if (!hyperState)
+                {
+                    enemyText.loadFromFile("Resources/clyde.png");
+
+                    enemy.setTexture(enemyText);
+                    enemy.setTextureRect(sf::IntRect(112, 0, 16, 16));
+                }
+                else
+                {
+                    enemyText.loadFromFile("Resources/blueGhosts.png");
+                    enemy.setTexture(enemyText);
+                    enemy.setTextureRect(sf::IntRect(0, 0, 16, 16));
+                }
                 enemy.setPosition(x * 20 + 52.0f, y * 20 + 52.0f);
                 window.draw(enemy);
             }
@@ -104,7 +114,7 @@ void render_map(sf::RenderWindow &window, GameState &game_state, int score)
 }
 bool checkCollisionWithGhost(PacPlayer &player, Ghost &ghost)
 {
-    return (player.coordinates == ghost.coordinates);
+    return (player.coordinates == ghost.coordinates && player.hyperState != true);
 }
 void *game(void *argument)
 {
@@ -174,6 +184,11 @@ void *game(void *argument)
             {
                 player.handleMovement(game_state, frame_time);
 
+                for (int i = 0; i < 4; ++i)
+                    if (player.hyperState)
+                        enemy[i].offState = true;
+                    else
+                        enemy[i].offState = false;
                 for (int i = 0; i < 4; i++)
                     enemy[i].ghostHandler(game_state, enemy_frame_timer[i], i);
 
@@ -186,7 +201,7 @@ void *game(void *argument)
                         game_state.map[19][14] = PLAYER;
                     }
             }
-            render_map(window, game_state, player.points);
+            render_map(window, game_state, player.points, player.hyperState);
             if (game_state.isPause)
                 window.draw(pause);
         }

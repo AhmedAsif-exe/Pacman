@@ -16,6 +16,11 @@ private:
         else if (map[x][y] == COIN)
             points += 10;
     }
+    void powerup(int x, int y, int **map)
+    {
+        if (map[x][y] == COIN)
+            hyperState = true;
+    }
 
 public:
     sf::Vector2i coordinates;
@@ -32,10 +37,16 @@ public:
         if (canMove(new_position.x, new_position.y, game_state.map))
         {
             setScore(new_position.x, new_position.y, game_state.map);
+            powerup(new_position.x, new_position.y, game_state.map);
             game_state.map[coordinates.x][coordinates.y] = BLANK;
             game_state.map[new_position.x][new_position.y] = PLAYER;
             coordinates = new_position;
             game_state.step = {0, 0};
+        }
+        if (game_state.eternal_frame > 5.0f)
+        {
+            hyperState = false;
+            game_state.eternal_frame = 0;
         }
     }
 };
