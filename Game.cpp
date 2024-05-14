@@ -103,8 +103,14 @@ void *game(void *argument)
     enemy[1].coordinates = {21, 8};
     enemy[2].coordinates = {18, 10};
     enemy[3].coordinates = {21, 10};
+    sf::Texture pauseIcon;
+    pauseIcon.loadFromFile("Resources/pause.png");
+    sf::Sprite pause(pauseIcon);
+    pause.setScale(0.75f, 0.83f);
+    pause.setPosition(375, 150);
     while (window.isOpen())
     {
+        game_state.eternal_frame += clock.getElapsedTime().asSeconds();
         frame_time += clock.getElapsedTime().asSeconds();
         for (int i = 0; i < 4; ++i)
             enemy_frame_timer[i] += clock.getElapsedTime().asSeconds();
@@ -121,17 +127,24 @@ void *game(void *argument)
         pthread_join(playerThread, NULL); // Handle player input
 
         for (int i = 0; i < 4; i++)
-            pthread_create(&GhostThread[i], NULL, ghostHandlerRoutine, &game_state.paths[i]);
+        {
+            game_state.additional_storage = i;
+            pthread_create(&GhostThread[i], NULL, ghostHandlerRoutine, &game_state);
+        }
 
         for (int i = 0; i < 4; i++)
             pthread_join(GhostThread[i], NULL);
 
-        player.handleMovement(game_state, frame_time);
+        if (!game_state.isPause)
+        {
+            player.handleMovement(game_state, frame_time);
 
-        for (int i = 0; i < 4; i++)
-            enemy[i].ghostHandler(game_state, enemy_frame_timer[i], i);
-
+            for (int i = 0; i < 4; i++)
+                enemy[i].ghostHandler(game_state, enemy_frame_timer[i], i);
+        }
         render_map(window, game_state);
+        if (game_state.isPause)
+            window.draw(pause);
 
         window.display();
     }

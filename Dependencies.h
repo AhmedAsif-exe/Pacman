@@ -14,6 +14,9 @@ struct GameState
     int width;
     int height;
     std::vector<sf::Vector2i> paths;
+    bool isPause = false;
+    float eternal_frame = 0;
+    int additional_storage;
     GameState() : paths(4)
     {
     }

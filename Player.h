@@ -55,6 +55,12 @@ void getKeyboardState(sf::Vector2i &step)
 void *Player(void *argument)
 {
     GameState *game_state = (GameState *)argument;
-    getKeyboardState(game_state->step);
+    if (game_state->eternal_frame > 0.1f && sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+    {
+        game_state->isPause = !game_state->isPause;
+        game_state->eternal_frame = 0;
+    }
+    if (!game_state->isPause)
+        getKeyboardState(game_state->step);
     pthread_exit(0);
 }

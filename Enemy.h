@@ -58,17 +58,19 @@ unsigned long long generateSeed()
 }
 void *ghostHandlerRoutine(void *argument)
 {
-    sf::Vector2i *direction = (sf::Vector2i *)argument;
-
+    GameState *game_state = (GameState *)argument;
+    if (game_state->isPause)
+        pthread_exit(0);
+    int space = game_state->additional_storage;
     srand(generateSeed());
     int walk = rand() % 4;
     if (walk == 0)
-        *direction = {1, 0};
+        game_state->paths[space] = {1, 0};
     else if (walk == 1)
-        *direction = {-1, 0};
+        game_state->paths[space] = {-1, 0};
     else if (walk == 2)
-        *direction = {0, 1};
+        game_state->paths[space] = {0, 1};
     else if (walk == 3)
-        *direction = {0, -1};
+        game_state->paths[space] = {0, -1};
     pthread_exit(0);
 }
