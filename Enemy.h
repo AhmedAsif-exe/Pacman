@@ -2,8 +2,6 @@
 class Ghost
 {
 private:
-    bool offState = false;
-
     bool canMove(int x, int y, GameState &game_state)
     {
         return (x >= 0 && x < 40 && y >= 0 && y < 20 && game_state.map[x][y] != WALL && game_state.map[x][y] != ENEMIES);
@@ -11,6 +9,7 @@ private:
     int previous_spawn = BLANK;
 
 public:
+    bool offState = false;
     sf::Vector2i coordinates;
     void ghostHandler(GameState &game_state, float &timer, int idx)
     {

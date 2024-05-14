@@ -17,6 +17,7 @@ struct GameState
     bool isPause = false;
     float eternal_frame = 0;
     int additional_storage;
+    int lives = 3;
     GameState() : paths(4)
     {
     }

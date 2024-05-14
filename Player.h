@@ -3,7 +3,6 @@
 class PacPlayer
 {
 private:
-    sf::Vector2i coordinates;
     bool canMove(int x, int y, int **map)
     {
         return (x >= 0 && x < 40 && y >= 0 && y < 20 && map[x][y] != WALL);
@@ -19,6 +18,8 @@ private:
     }
 
 public:
+    sf::Vector2i coordinates;
+    bool hyperState = false;
     int points = 0;
     PacPlayer() : coordinates(sf::Vector2i(19, 14)) {}
     void handleMovement(GameState &game_state, float &frame_time)

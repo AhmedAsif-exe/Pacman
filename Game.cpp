@@ -32,10 +32,13 @@ void generate_map(GameState &game_state)
         std::cout << std::endl;
     }
 }
-void render_map(sf::RenderWindow &window, GameState &game_state)
+void render_map(sf::RenderWindow &window, GameState &game_state, int score)
 {
     sf::RectangleShape rectangle(sf::Vector2f(20.0f, 20.0f));
     sf::CircleShape circle;
+    sf::Font font;
+    if (!font.loadFromFile("Resources/Arial.ttf"))
+        return;
 
     for (int x = 0; x < game_state.width; ++x)
         for (int y = 0; y < game_state.height; ++y)
@@ -80,6 +83,28 @@ void render_map(sf::RenderWindow &window, GameState &game_state)
                 enemy.setPosition(x * 20 + 52.0f, y * 20 + 52.0f);
                 window.draw(enemy);
             }
+    sf::Text scoreText;
+    scoreText.setFont(font);
+    scoreText.setString("Score: " + std::to_string(score));
+    scoreText.setCharacterSize(24);
+    scoreText.setFillColor(sf::Color::White);
+    scoreText.setPosition(770, 10);
+    window.draw(scoreText);
+
+    sf::Texture pac;
+    pac.loadFromFile("Resources/player.png");
+    sf::Sprite lives;
+    lives.setTexture(pac);
+    lives.setTextureRect(sf::IntRect(0, 0, 16, 16));
+    for (int i = 1; i <= game_state.lives; i++)
+    {
+        lives.setPosition(15 * i, 10);
+        window.draw(lives);
+    }
+}
+bool checkCollisionWithGhost(PacPlayer &player, Ghost &ghost)
+{
+    return (player.coordinates == ghost.coordinates);
 }
 void *game(void *argument)
 {
@@ -122,30 +147,49 @@ void *game(void *argument)
 
         window.clear();
         window.draw(img);
-
-        pthread_create(&playerThread, NULL, Player, &game_state);
-        pthread_join(playerThread, NULL); // Handle player input
-
-        for (int i = 0; i < 4; i++)
+        if (game_state.lives == 0)
         {
-            game_state.additional_storage = i;
-            pthread_create(&GhostThread[i], NULL, ghostHandlerRoutine, &game_state);
+            sf::Texture over;
+            over.loadFromFile("Resources/gameover.png");
+            sf::Sprite gameover(over);
+            gameover.setScale(0.75f, 0.83f);
+            gameover.setPosition(375, 150);
+            window.draw(gameover);
         }
-
-        for (int i = 0; i < 4; i++)
-            pthread_join(GhostThread[i], NULL);
-
-        if (!game_state.isPause)
+        if (game_state.lives > 0)
         {
-            player.handleMovement(game_state, frame_time);
+            pthread_create(&playerThread, NULL, Player, &game_state);
+            pthread_join(playerThread, NULL); // Handle player input
 
             for (int i = 0; i < 4; i++)
-                enemy[i].ghostHandler(game_state, enemy_frame_timer[i], i);
-        }
-        render_map(window, game_state);
-        if (game_state.isPause)
-            window.draw(pause);
+            {
+                game_state.additional_storage = i;
+                pthread_create(&GhostThread[i], NULL, ghostHandlerRoutine, &game_state);
+            }
 
+            for (int i = 0; i < 4; i++)
+                pthread_join(GhostThread[i], NULL);
+
+            if (!game_state.isPause)
+            {
+                player.handleMovement(game_state, frame_time);
+
+                for (int i = 0; i < 4; i++)
+                    enemy[i].ghostHandler(game_state, enemy_frame_timer[i], i);
+
+                for (int i = 0; i < 4; ++i)
+                    if (checkCollisionWithGhost(player, enemy[i]))
+                    {
+                        game_state.map[player.coordinates.x][player.coordinates.y] == ENEMIES;
+                        game_state.lives--;
+                        player.coordinates = {19, 14};
+                        game_state.map[19][14] = PLAYER;
+                    }
+            }
+            render_map(window, game_state, player.points);
+            if (game_state.isPause)
+                window.draw(pause);
+        }
         window.display();
     }
 
