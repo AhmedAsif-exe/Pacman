@@ -9,7 +9,6 @@ private:
         return (x >= 0 && x < 40 && y >= 0 && y < 20 && map[x][y] != WALL);
     }
     float timer = 0.1f;
-    int points = 0;
 
     void setScore(int x, int y, int **map)
     {
@@ -20,10 +19,10 @@ private:
     }
 
 public:
+    int points = 0;
     PacPlayer() : coordinates(sf::Vector2i(19, 14)) {}
     void handleMovement(GameState &game_state, float &frame_time)
     {
-        std::cout << "Frame time : " << frame_time << std::endl;
         if (frame_time < 0.2f)
             return;
         frame_time = 0;
@@ -39,3 +38,23 @@ public:
         }
     }
 };
+
+void getKeyboardState(sf::Vector2i &step)
+{
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+        step = {-1, 0};
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+        step = {1, 0};
+
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+        step = {0, -1};
+
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+        step = {0, 1};
+}
+void *Player(void *argument)
+{
+    GameState *game_state = (GameState *)argument;
+    getKeyboardState(game_state->step);
+    pthread_exit(0);
+}
